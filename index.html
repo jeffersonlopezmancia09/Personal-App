@@ -250,6 +250,17 @@
     .modal textarea { height: 100px; resize: none; }
     .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
 
+
+
+    /* COLOR THEMES */
+    .color-btn { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+    .color-btn:hover { transform: scale(1.15); border-color: var(--text); }
+    .color-btn.active { border-color: var(--text); transform: scale(1.1); }
+    /* VIDEO CARDS */
+    .video-card { background: var(--bg3); border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+    .video-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .video-preview { position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 8px; overflow: hidden; }
+    .video-preview iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px; }
     /* PDF */
     .btn-pdf { background: var(--red); color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 
@@ -450,6 +461,20 @@
           <button class="btn-primary" onclick="abrirModal('modal-perfil')">✏️ Editar perfil</button>
         </div>
       </div>
+
+      <div class="perfil-card" style="margin-top:12px">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--text2);margin-bottom:16px">🎨 Color de acento</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="color-btn" onclick="cambiarColor('#1a1a2e')" style="background:#1a1a2e"></div>
+          <div class="color-btn" onclick="cambiarColor('#3182ce')" style="background:#3182ce"></div>
+          <div class="color-btn" onclick="cambiarColor('#805ad5')" style="background:#805ad5"></div>
+          <div class="color-btn" onclick="cambiarColor('#38a169')" style="background:#38a169"></div>
+          <div class="color-btn" onclick="cambiarColor('#e53e3e')" style="background:#e53e3e"></div>
+          <div class="color-btn" onclick="cambiarColor('#dd6b20')" style="background:#dd6b20"></div>
+          <div class="color-btn" onclick="cambiarColor('#d53f8c')" style="background:#d53f8c"></div>
+          <div class="color-btn" onclick="cambiarColor('#2b6cb0')" style="background:#2b6cb0"></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -479,6 +504,12 @@
         </select>
       </div>
       <div id="editor-nota" contenteditable="true"></div>
+      <div style="margin-bottom:10px">
+        <label style="cursor:pointer;font-size:0.82rem;color:var(--text2);display:flex;align-items:center;gap:6px">
+          <input type="file" id="nota-imagen" accept="image/*" onchange="insertarImagen(this)" style="display:none">
+          <span onclick="document.getElementById('nota-imagen').click()" style="background:var(--bg3);border:1px solid var(--border);padding:6px 12px;border-radius:8px;cursor:pointer">📷 Agregar imagen</span>
+        </label>
+      </div>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="cerrarModal('modal-nota')">Cancelar</button>
         <button class="btn-primary" onclick="agregarNota()">Guardar</button>
@@ -534,6 +565,12 @@
         <option value="alta">🔴 Alta prioridad</option>
         <option value="media">🟡 Media prioridad</option>
         <option value="baja">🟢 Baja prioridad</option>
+      </select>
+      <select id="tarea-recurrencia">
+        <option value="ninguna">🔂 Sin repetición</option>
+        <option value="diaria">📅 Diaria</option>
+        <option value="semanal">📅 Semanal</option>
+        <option value="mensual">📅 Mensual</option>
       </select>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="cerrarModal('modal-tarea')">Cancelar</button>
@@ -895,6 +932,19 @@
 
     // ============ NOTAS ============
     function formatear(cmd) { document.getElementById('editor-nota').focus(); document.execCommand(cmd); }
+
+    function insertarImagen(input) {
+      var file = input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = '<img src="' + e.target.result + '" style="max-width:100%;border-radius:8px;margin-top:8px">';
+        document.getElementById('editor-nota').focus();
+        document.execCommand('insertHTML', false, img);
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
     function cambiarFuente(f) { document.getElementById('editor-nota').focus(); document.execCommand('fontName', false, f); }
     function cambiarTamano(s) { document.getElementById('editor-nota').focus(); document.execCommand('fontSize', false, s); }
 
@@ -1166,15 +1216,17 @@
       var materia = document.getElementById('tarea-materia').value.trim();
       var fecha = document.getElementById('tarea-fecha').value;
       var prioridad = document.getElementById('tarea-prioridad').value;
+      var recurrencia = document.getElementById('tarea-recurrencia').value;
       if (!nombre) { alert('Escribe el nombre'); return; }
       var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
       var color = colorTarea(materia || nombre);
-      tareas.unshift({id: Date.now(), nombre: nombre, materia: materia, fecha: fecha, completada: false, color: color, prioridad: prioridad});
+      tareas.unshift({id: Date.now(), nombre: nombre, materia: materia, fecha: fecha, completada: false, color: color, prioridad: prioridad, recurrencia: recurrencia});
       localStorage.setItem('tareas', JSON.stringify(tareas));
       document.getElementById('tarea-nombre').value = '';
       document.getElementById('tarea-materia').value = '';
       document.getElementById('tarea-fecha').value = '';
       document.getElementById('tarea-prioridad').value = 'normal';
+      document.getElementById('tarea-recurrencia').value = 'ninguna';
       cerrarModal('modal-tarea');
       renderTareas();
     }
@@ -1215,9 +1267,10 @@
           var dias = t.fecha ? diasRestantes(t.fecha) : null;
           var diasText = dias === null ? '' : dias === 0 ? '¡Hoy!' : dias > 0 ? dias + ' días' : 'Vencida';
           var prioridadIcon = t.prioridad === 'alta' ? '🔴 ' : t.prioridad === 'media' ? '🟡 ' : t.prioridad === 'baja' ? '🟢 ' : '';
+          var recIcon = t.recurrencia === 'diaria' ? ' 🔁 Diaria' : t.recurrencia === 'semanal' ? ' 🔁 Semanal' : t.recurrencia === 'mensual' ? ' 🔁 Mensual' : '';
           html += '<div class="tarea-card" style="background:' + (t.color||'#3182ce') + ';' + (t.completada?'opacity:0.5':'') + '">';
           html += '<div><div style="font-weight:600;' + (t.completada?'text-decoration:line-through':'') + '">' + prioridadIcon + t.nombre + '</div>';
-          html += '<div style="font-size:0.78rem;opacity:0.8">' + (t.materia||'') + (t.fecha?' · '+diasText:'') + '</div></div>';
+          html += '<div style="font-size:0.78rem;opacity:0.8">' + (t.materia||'') + (t.fecha?' · '+diasText:'') + recIcon + '</div></div>';
           html += '<div style="display:flex;gap:6px"><button class="btn-mini" onclick="toggleTarea(' + t.id + ')">' + (t.completada?'↩':'✓') + '</button>';
           html += '<button class="btn-danger-sm" style="color:rgba(255,255,255,0.7)" onclick="eliminarTarea(' + t.id + ')">✕</button></div></div>';
         });
@@ -1288,6 +1341,26 @@
       select.innerHTML = html;
     }
 
+    function getYouTubeId(url) {
+      var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      var match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function renderVideoCard(v) {
+      var ytId = getYouTubeId(v.url);
+      var html = '<div class="video-card">';
+      html += '<div class="video-card-header"><div class="video-titulo">' + v.titulo + '</div>';
+      html += '<button class="btn-danger-sm" onclick="eliminarVideo(' + v.id + ')">✕</button></div>';
+      if (ytId) {
+        html += '<div class="video-preview"><iframe src="https://www.youtube.com/embed/' + ytId + '" frameborder="0" allowfullscreen></iframe></div>';
+      } else {
+        html += '<a href="' + v.url + '" target="_blank" class="video-link" style="display:block;margin-top:8px">▶ Ver video</a>';
+      }
+      html += '</div>';
+      return html;
+    }
+
     function renderVideos() {
       var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
       var videos = JSON.parse(localStorage.getItem('videos') || '[]');
@@ -1300,10 +1373,7 @@
         if (c.abierta) {
           html += '<div class="carpeta-videos">';
           if (cvids.length) {
-            cvids.forEach(function(v) {
-              html += '<div class="video-item"><div><div class="video-titulo">' + v.titulo + '</div><a href="' + v.url + '" target="_blank" class="video-link">▶ Ver video</a></div>';
-              html += '<button class="btn-danger-sm" onclick="eliminarVideo(' + v.id + ')">✕</button></div>';
-            });
+            cvids.forEach(function(v) { html += renderVideoCard(v); });
           } else {
             html += '<p style="color:var(--text3);font-size:0.85rem;padding:10px 0">No hay videos</p>';
           }
@@ -1314,17 +1384,32 @@
       if (sinCarpeta.length) {
         html += '<div class="carpeta-card"><div class="carpeta-header"><span class="carpeta-nombre">Sin carpeta</span><span class="carpeta-count">' + sinCarpeta.length + ' videos</span></div>';
         html += '<div class="carpeta-videos">';
-        sinCarpeta.forEach(function(v) {
-          html += '<div class="video-item"><div><div class="video-titulo">' + v.titulo + '</div><a href="' + v.url + '" target="_blank" class="video-link">▶ Ver video</a></div>';
-          html += '<button class="btn-danger-sm" onclick="eliminarVideo(' + v.id + ')">✕</button></div>';
-        });
+        sinCarpeta.forEach(function(v) { html += renderVideoCard(v); });
         html += '</div></div>';
       }
       document.getElementById('lista-videos').innerHTML = html || '<p style="color:var(--text3);text-align:center;padding:40px">No hay videos aún</p>';
     }
 
+    // ============ COLOR THEMES ============
+    function cambiarColor(color) {
+      document.documentElement.style.setProperty('--accent', color);
+      document.documentElement.style.setProperty('--accent2', color);
+      document.documentElement.style.setProperty('--sidebar-active', color);
+      localStorage.setItem('colorAccent', color);
+      document.querySelectorAll('.color-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.style.background === color) btn.classList.add('active');
+      });
+    }
+
+    function cargarColor() {
+      var color = localStorage.getItem('colorAccent');
+      if (color) cambiarColor(color);
+    }
+
     // ============ INIT ============
     cargarPerfil();
+    cargarColor();
     renderDashboard();
     renderNotas();
     renderEventos();
