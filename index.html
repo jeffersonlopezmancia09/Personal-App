@@ -297,8 +297,8 @@
   <!-- TOPBAR MOBILE -->
   <div id="topbar">
     <button id="topbar-menu" onclick="toggleSidebar()">☰</button>
-    <span id="topbar-title">Mi Vida</span>
-    <img id="topbar-profile" src="" alt="perfil" onclick="mostrar('perfil', null)">
+    <span id="topbar-title">Personal</span>
+    <img id="topbar-profile" src="" alt="perfil" onclick="mostrar('perfil', null)" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);cursor:pointer">
   </div>
 
   <!-- SIDEBAR OVERLAY -->
@@ -307,7 +307,7 @@
   <!-- SIDEBAR -->
   <div id="sidebar">
     <div id="sidebar-profile" onclick="mostrar('perfil', null)">
-      <img id="sidebar-profile-img" src="" alt="perfil" id="profile-img">
+      <img id="sidebar-profile-img" src="" alt="perfil">
       <div>
         <div id="profile-name">Jefferson Miguel</div>
         <div id="profile-role">Segundo de bachillerato</div>
@@ -330,6 +330,7 @@
     </div>
     <div id="sidebar-bottom">
       <button class="sidebar-icon-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+      <button class="sidebar-icon-btn" id="lang-btn" onclick="toggleIdioma()" title="Idioma">🇪🇸</button>
     </div>
   </div>
 
@@ -457,8 +458,9 @@
         </div>
         <div class="perfil-nombre" id="perfil-nombre-display">Jefferson Miguel Mancia</div>
         <div class="perfil-grado">Segundo de bachillerato · 2026</div>
-        <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button class="btn-primary" onclick="abrirModal('modal-perfil')">✏️ Editar perfil</button>
+          <button class="btn-secondary" onclick="eliminarFoto()">🗑️ Quitar foto</button>
         </div>
       </div>
 
@@ -504,11 +506,10 @@
         </select>
       </div>
       <div id="editor-nota" contenteditable="true"></div>
-      <div style="margin-bottom:10px">
-        <label style="cursor:pointer;font-size:0.82rem;color:var(--text2);display:flex;align-items:center;gap:6px">
-          <input type="file" id="nota-imagen" accept="image/*" onchange="insertarImagen(this)" style="display:none">
-          <span onclick="document.getElementById('nota-imagen').click()" style="background:var(--bg3);border:1px solid var(--border);padding:6px 12px;border-radius:8px;cursor:pointer">📷 Agregar imagen</span>
-        </label>
+      <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span onclick="document.getElementById('nota-imagen').click()" style="background:var(--bg3);border:1px solid var(--border);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.82rem;color:var(--text2)">📷 Imagen</span>
+        <input type="file" id="nota-imagen" accept="image/*" onchange="insertarImagen(this)" style="display:none">
+        <input type="text" id="nota-etiqueta" placeholder="🏷️ Etiqueta (ej: importante)" style="flex:1;min-width:150px;margin-bottom:0">
       </div>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="cerrarModal('modal-nota')">Cancelar</button>
@@ -636,17 +637,28 @@
     function cargarPerfil() {
       var nombre = perfilData.nombre || 'Jefferson Miguel Mancia';
       var foto = perfilData.foto || '';
-      document.getElementById('profile-name').textContent = nombre.split(' ')[0] + ' ' + (nombre.split(' ')[1] || '');
+      var partes = nombre.split(' ');
+      document.getElementById('profile-name').textContent = (partes[0] || '') + ' ' + (partes[1] || '');
       document.getElementById('perfil-nombre-display').textContent = nombre;
-      document.getElementById('perfil-nombre-input').value = nombre;
-      var imgs = [document.getElementById('sidebar-profile-img'), document.getElementById('perfil-img'), document.getElementById('topbar-profile')];
-      imgs.forEach(function(img) {
-        if (img) img.src = foto || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nombre) + '&background=1a1a2e&color=fff&size=80';
-      });
+      document.getElementById('perfil-nombre-input').textContent = nombre;
+      var avatarUrl = foto || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nombre) + '&background=1a1a2e&color=fff&size=80';
+      var sidebarImg = document.getElementById('sidebar-profile-img');
+      var perfilImg = document.getElementById('perfil-img');
+      var topbarImg = document.getElementById('topbar-profile');
+      if (sidebarImg) sidebarImg.src = avatarUrl;
+      if (perfilImg) perfilImg.src = avatarUrl;
+      if (topbarImg) topbarImg.src = avatarUrl;
+    }
+
+    function eliminarFoto() {
+      perfilData.foto = '';
+      localStorage.setItem('perfil', JSON.stringify(perfilData));
+      cargarPerfil();
     }
 
     function guardarPerfil() {
-      var nombre = document.getElementById('perfil-nombre-input').value.trim();
+      var input = document.getElementById('perfil-nombre-input');
+      var nombre = (input.value || input.textContent || '').trim();
       if (!nombre) return alert('Escribe tu nombre');
       perfilData.nombre = nombre;
       localStorage.setItem('perfil', JSON.stringify(perfilData));
@@ -951,12 +963,14 @@
     function agregarNota() {
       var titulo = document.getElementById('nota-titulo').value.trim();
       var texto = document.getElementById('editor-nota').innerHTML.trim();
+      var etiqueta = document.getElementById('nota-etiqueta').value.trim();
       if (!titulo || !texto) { alert('Completa todos los campos'); return; }
       var notas = JSON.parse(localStorage.getItem('notas') || '[]');
-      notas.unshift({id: Date.now(), titulo: titulo, texto: texto, fijada: false});
+      notas.unshift({id: Date.now(), titulo: titulo, texto: texto, fijada: false, etiqueta: etiqueta});
       localStorage.setItem('notas', JSON.stringify(notas));
       document.getElementById('nota-titulo').value = '';
       document.getElementById('editor-nota').innerHTML = '';
+      document.getElementById('nota-etiqueta').value = '';
       cerrarModal('modal-nota');
       renderNotas();
     }
@@ -997,7 +1011,9 @@
           html += '<button class="btn-danger-sm" onclick="fijarNota(' + n.id + ')" title="Fijar">' + (n.fijada ? '📌' : '📍') + '</button>';
           html += '<button class="btn-danger-sm" onclick="editarNota(' + n.id + ')" title="Editar">✏️</button>';
           html += '<button class="btn-danger-sm" onclick="eliminarNota(' + n.id + ')" title="Eliminar">🗑️</button>';
-          html += '</div></div><div class="nota-contenido">' + n.texto + '</div></div>';
+          html += '</div></div>';
+          if (n.etiqueta) html += '<span style="display:inline-block;background:var(--accent);color:white;font-size:0.72rem;padding:2px 10px;border-radius:20px;margin-bottom:8px">🏷️ ' + n.etiqueta + '</span>';
+          html += '<div class="nota-contenido">' + n.texto + '</div></div>';
         });
       } else {
         html = '<p style="color:var(--text3);text-align:center;padding:40px">No hay notas aún</p>';
@@ -1390,6 +1406,61 @@
       document.getElementById('lista-videos').innerHTML = html || '<p style="color:var(--text3);text-align:center;padding:40px">No hay videos aún</p>';
     }
 
+    // ============ IDIOMA ============
+    var idioma = localStorage.getItem('idioma') || 'es';
+    var traducciones = {
+      es: { dashboard:'Dashboard', buscar:'Buscar', notas:'Notas', eventos:'Eventos', proyectos:'Proyectos', academico:'Notas académicas', tareas:'Tareas', videos:'Videos', perfil:'Perfil', hola:'Hola, Jefferson 👋', nueva:'+ Nueva', guardar:'Guardar', cancelar:'Cancelar' },
+      en: { dashboard:'Dashboard', buscar:'Search', notas:'Notes', eventos:'Events', proyectos:'Projects', academico:'Academic Notes', tareas:'Tasks', videos:'Videos', perfil:'Profile', hola:'Hello, Jefferson 👋', nueva:'+ New', guardar:'Save', cancelar:'Cancel' }
+    };
+
+    function toggleIdioma() {
+      idioma = idioma === 'es' ? 'en' : 'es';
+      localStorage.setItem('idioma', idioma);
+      var btn = document.getElementById('lang-btn');
+      if (btn) btn.textContent = idioma === 'es' ? '🇪🇸' : '🇺🇸';
+      var t = traducciones[idioma];
+      var navBtns = document.querySelectorAll('.nav-btn');
+      var labels = ['dashboard', 'buscar', 'notas', 'eventos', 'proyectos', 'academico', 'tareas', 'videos', 'perfil'];
+      var icons = ['🏠', '🔍', '📝', '📅', '🎯', '🎓', '⏰', '🎬', '👤'];
+      navBtns.forEach(function(btn, i) {
+        if (labels[i]) btn.textContent = icons[i] + ' ' + t[labels[i]];
+      });
+      document.querySelector('#sec-dashboard .seccion-header h2').textContent = t.hola;
+    }
+
+    function cargarIdioma() {
+      if (idioma === 'en') toggleIdioma();
+      var btn = document.getElementById('lang-btn');
+      if (btn) btn.textContent = idioma === 'es' ? '🇪🇸' : '🇺🇸';
+    }
+
+    // ============ NOTIFICACIONES ============
+    function pedirPermiso() {
+      if ('Notification' in window) {
+        Notification.requestPermission();
+      }
+    }
+
+    function enviarNotificacion(titulo, cuerpo) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(titulo, { body: cuerpo, icon: '' });
+      }
+    }
+
+    function verificarTareasVenciendo() {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      tareas.forEach(function(t) {
+        if (!t.completada && t.fecha) {
+          var dias = diasRestantes(t.fecha);
+          if (dias === 1) {
+            enviarNotificacion('⏰ Tarea por vencer', '"' + t.nombre + '" vence mañana!');
+          } else if (dias === 0) {
+            enviarNotificacion('🔴 Tarea vence hoy', '"' + t.nombre + '" vence hoy!');
+          }
+        }
+      });
+    }
+
     // ============ COLOR THEMES ============
     function cambiarColor(color) {
       document.documentElement.style.setProperty('--accent', color);
@@ -1410,6 +1481,9 @@
     // ============ INIT ============
     cargarPerfil();
     cargarColor();
+    cargarIdioma();
+    pedirPermiso();
+    verificarTareasVenciendo();
     renderDashboard();
     renderNotas();
     renderEventos();
@@ -1418,7 +1492,7 @@
     renderTareas();
     renderVideos();
     actualizarSelectCarpetas();
-    setInterval(function() { renderEventos(); renderTareas(); renderDashboard(); }, 60000);
+    setInterval(function() { renderEventos(); renderTareas(); renderDashboard(); verificarTareasVenciendo(); }, 60000);
   </script>
 </body>
 </html>
