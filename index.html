@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Mi Vida</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --bg2: #ffffff;
+      --bg3: #f8fafc;
+      --sidebar-bg: #1a1a2e;
+      --sidebar-text: rgba(255,255,255,0.5);
+      --sidebar-active: #0f3460;
+      --text: #1a1a2e;
+      --text2: #718096;
+      --text3: #a0aec0;
+      --border: #e2e8f0;
+      --accent: #1a1a2e;
+      --accent2: #0f3460;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow2: 0 4px 20px rgba(0,0,0,0.12);
+      --green: #38a169;
+      --yellow: #d69e2e;
+      --red: #e53e3e;
+      --blue: #3182ce;
+      --purple: #805ad5;
+    }
+    [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --bg2: #1a1a2e;
+      --bg3: #16213e;
+      --sidebar-bg: #0a0a15;
+      --sidebar-text: rgba(255,255,255,0.4);
+      --sidebar-active: #1a1a2e;
+      --text: #f0f2f5;
+      --text2: #a0aec0;
+      --text3: #4a5568;
+      --border: #2d3748;
+      --accent: #4a90d9;
+      --accent2: #3182ce;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow2: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; transition: background 0.3s, color 0.3s; }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 240px; background: var(--sidebar-bg); padding: 0;
+      display: flex; flex-direction: column;
+      position: fixed; height: 100vh; z-index: 50;
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+    #sidebar-profile {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+    }
+    #profile-img {
+      width: 42px; height: 42px; border-radius: 50%;
+      object-fit: cover; border: 2px solid rgba(255,255,255,0.1);
+      background: #2d3748;
+    }
+    #profile-name { font-size: 0.88rem; font-weight: 600; color: white; }
+    #profile-role { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top: 1px; }
+    #fecha-hora { padding: 12px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    #reloj { font-size: 1.5rem; font-weight: 600; color: white; letter-spacing: 1px; font-family: 'DM Serif Display', serif; }
+    #fecha { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 2px; text-transform: capitalize; }
+    #sidebar-nav { padding: 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .nav-btn {
+      background: none; border: none; color: var(--sidebar-text);
+      padding: 10px 12px; border-radius: 10px; text-align: left;
+      cursor: pointer; font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s; display: flex; align-items: center; gap: 10px; width: 100%;
+      font-weight: 500;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-btn.activo { background: var(--sidebar-active); color: white; }
+    #sidebar-bottom { padding: 12px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 8px; }
+    .sidebar-icon-btn {
+      flex: 1; background: rgba(255,255,255,0.05); border: none; color: rgba(255,255,255,0.5);
+      padding: 8px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.2s;
+    }
+    .sidebar-icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    /* OVERLAY MOBILE */
+    #sidebar-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 40;
+    }
+    #sidebar-overlay.visible { display: block; }
+
+    /* TOPBAR MOBILE */
+    #topbar {
+      display: none; position: fixed; top: 0; left: 0; right: 0; height: 56px;
+      background: var(--sidebar-bg); z-index: 45; align-items: center;
+      padding: 0 16px; gap: 12px;
+    }
+    #topbar-menu { background: none; border: none; color: white; font-size: 1.3rem; cursor: pointer; padding: 4px; }
+    #topbar-title { font-size: 1rem; font-weight: 600; color: white; flex: 1; }
+    #topbar-profile { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); }
+
+    /* CONTENIDO */
+    #contenido { margin-left: 240px; padding: 32px 36px; flex: 1; min-height: 100vh; }
+    .seccion { display: none; animation: fadeIn 0.2s ease; }
+    .seccion.activa { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* SECCION HEADER */
+    .seccion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .seccion-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--text); font-family: 'DM Serif Display', serif; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* BOTONES */
+    .btn-add {
+      background: var(--accent); color: white; border: none;
+      width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; box-shadow: var(--shadow2);
+    }
+    .btn-add:hover { transform: scale(1.1); }
+    .btn-icon {
+      background: var(--bg2); color: var(--text2); border: 1px solid var(--border);
+      width: 36px; height: 36px; border-radius: 50%; font-size: 0.9rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-icon:hover { background: var(--bg3); }
+    .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; }
+    .btn-danger-sm { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 0.9rem; padding: 4px 6px; border-radius: 6px; transition: all 0.2s; }
+    .btn-danger-sm:hover { background: #fee2e2; color: var(--red); }
+    .btn-mini { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+
+    /* CARDS */
+    .card { background: var(--bg2); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .card-row { display: flex; justify-content: space-between; align-items: center; }
+    .card-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .card-meta { font-size: 0.8rem; color: var(--text3); }
+
+    /* DASHBOARD */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg2); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .stat-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .stat-num { font-size: 2rem; font-weight: 700; color: var(--text); font-family: 'DM Serif Display', serif; }
+    .stat-label { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
+    .upcoming-section { background: var(--bg2); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .upcoming-title { font-size: 0.85rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    .upcoming-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .upcoming-item:last-child { border-bottom: none; }
+    .upcoming-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .upcoming-name { font-size: 0.88rem; color: var(--text); flex: 1; }
+    .upcoming-days { font-size: 0.78rem; font-weight: 600; color: var(--text2); }
+
+    /* BUSCADOR */
+    #search-bar {
+      width: 100%; padding: 10px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--bg2);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; margin-bottom: 16px; transition: border 0.2s;
+    }
+    #search-bar:focus { border-color: var(--accent); }
+    .search-result { background: var(--bg2); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .search-result:hover { background: var(--bg3); }
+    .search-badge { font-size: 0.72rem; background: var(--bg3); color: var(--text3); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
+
+    /* NOTAS */
+    .nota-card { background: var(--bg2); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+    .nota-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .nota-titulo { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .nota-contenido { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+    .nota-actions { display: flex; gap: 4px; }
+    .nota-pinned { border-left-color: #f6ad55; }
+
+    /* EDITOR */
+    .editor-toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .tool-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: 'DM Sans', sans-serif; }
+    .tool-btn:hover { background: var(--border); }
+    .font-select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+    #editor-nota { width: 100%; min-height: 120px; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; color: var(--text); margin-bottom: 10px; }
+
+    /* EVENTOS */
+    .evento-card { border-radius: 14px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: white; }
+    .evento-dias { font-size: 1.8rem; font-weight: 700; line-height: 1; font-family: 'DM Serif Display', serif; }
+    .evento-label { font-size: 0.7rem; opacity: 0.8; }
+
+    /* TAREAS */
+    .tarea-card { border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: white; }
+
+    /* ACADEMICO */
+    .anio-card { background: var(--bg2); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+    .anio-header { background: var(--sidebar-bg); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .anio-grado { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+    .anio-year { font-size: 1.2rem; font-weight: 700; color: white; font-family: 'DM Serif Display', serif; }
+    .badge-cursando { background: rgba(74,222,128,0.15); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(74,222,128,0.3); }
+    .materias-container { padding: 16px; }
+    .materia-card { background: var(--bg3); border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+    .materia-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .materia-nombre { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .parciales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .parcial-box { background: var(--bg2); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+    .parcial-titulo { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .act-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+    .act-nombre { color: var(--text2); flex: 1; }
+    .act-nota { font-weight: 600; color: var(--text); margin: 0 8px; }
+    .parcial-subtotal { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.8rem; color: var(--text3); }
+    .add-act-row { display: flex; gap: 6px; margin-top: 10px; }
+    .add-act-row input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; outline: none; font-family: 'DM Sans', sans-serif; margin: 0; min-width: 0; flex: 1; }
+
+    /* VIDEOS */
+    .carpeta-card { background: var(--bg2); border-radius: 16px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+    .carpeta-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--bg3); }
+    .carpeta-nombre { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .carpeta-count { font-size: 0.78rem; color: var(--text3); }
+    .carpeta-videos { padding: 10px 16px; }
+    .video-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .video-titulo { font-size: 0.88rem; color: var(--text); }
+    .video-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
+
+    /* PROYECTOS */
+    .proyecto-card { background: var(--bg2); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .proyecto-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .proyecto-nombre { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .proyecto-desc { font-size: 0.85rem; color: var(--text2); line-height: 1.5; }
+    .recordatorio-badge { font-size: 0.72rem; color: #f6ad55; background: rgba(246,173,85,0.1); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(246,173,85,0.3); }
+
+    /* PERFIL */
+    .perfil-card { background: var(--bg2); border-radius: 20px; padding: 28px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 16px; }
+    .perfil-avatar-container { position: relative; width: 80px; height: 80px; margin: 0 auto 16px; }
+    .perfil-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); }
+    .perfil-avatar-edit { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.7rem; color: white; border: 2px solid var(--bg2); }
+    .perfil-nombre { font-size: 1.2rem; font-weight: 700; color: var(--text); text-align: center; font-family: 'DM Serif Display', serif; }
+    .perfil-grado { font-size: 0.85rem; color: var(--text3); text-align: center; margin-top: 4px; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.abierto { display: flex; }
+    .modal { background: var(--bg2); border-radius: 20px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 1.1rem; margin-bottom: 18px; color: var(--text); font-family: 'DM Serif Display', serif; }
+    .modal input, .modal textarea, .modal select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; width: 100%; margin-bottom: 10px; transition: border 0.2s; }
+    .modal input:focus, .modal textarea:focus { border-color: var(--accent); }
+    .modal textarea { height: 100px; resize: none; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+
+    /* PDF */
+    .btn-pdf { background: var(--red); color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+    /* FAB MOBILE */
+    #fab { display: none; position: fixed; bottom: 24px; right: 24px; width: 52px; height: 52px; background: var(--accent); border-radius: 50%; border: none; color: white; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 30; align-items: center; justify-content: center; transition: transform 0.2s; }
+    #fab:hover { transform: scale(1.1); }
+
+    /* INPUTS GENERALES */
+    input[type="file"] { display: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #topbar { display: flex; }
+      #contenido { margin-left: 0; padding: 80px 16px 90px; }
+      #fab { display: flex; }
+      .parciales-grid { grid-template-columns: 1fr; }
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+      .seccion-header { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* CHARTS */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .chart-card { background: var(--bg2); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .chart-title { font-size: 0.85rem; font-weight: 600; color: var(--text2); margin-bottom: 16px; }
+    .chart-container { position: relative; height: 200px; }
+    .chart-empty { color: var(--text3); font-size: 0.82rem; text-align: center; padding: 20px 0; display: none; }
+    @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } .chart-container { height: 180px; } }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR MOBILE -->
+  <div id="topbar">
+    <button id="topbar-menu" onclick="toggleSidebar()">☰</button>
+    <span id="topbar-title">Mi Vida</span>
+    <img id="topbar-profile" src="" alt="perfil" onclick="mostrar('perfil', null)">
+  </div>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-profile" onclick="mostrar('perfil', null)">
+      <img id="sidebar-profile-img" src="" alt="perfil" id="profile-img">
+      <div>
+        <div id="profile-name">Jefferson Miguel</div>
+        <div id="profile-role">Segundo de bachillerato</div>
+      </div>
+    </div>
+    <div id="fecha-hora">
+      <div id="reloj">00:00</div>
+      <div id="fecha">Cargando...</div>
+    </div>
+    <div id="sidebar-nav">
+      <button class="nav-btn activo" onclick="mostrar('dashboard', this)">🏠 Dashboard</button>
+      <button class="nav-btn" onclick="mostrar('buscar', this)">🔍 Buscar</button>
+      <button class="nav-btn" onclick="mostrar('notas', this)">📝 Notas</button>
+      <button class="nav-btn" onclick="mostrar('eventos', this)">📅 Eventos</button>
+      <button class="nav-btn" onclick="mostrar('proyectos', this)">🎯 Proyectos</button>
+      <button class="nav-btn" onclick="mostrar('academico', this)">🎓 Notas académicas</button>
+      <button class="nav-btn" onclick="mostrar('tareas', this)">⏰ Tareas</button>
+      <button class="nav-btn" onclick="mostrar('videos', this)">🎬 Videos</button>
+      <button class="nav-btn" onclick="mostrar('perfil', this)">👤 Perfil</button>
+    </div>
+    <div id="sidebar-bottom">
+      <button class="sidebar-icon-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div id="contenido">
+
+    <!-- DASHBOARD -->
+    <div class="seccion activa" id="sec-dashboard">
+      <div class="seccion-header">
+        <h2>Hola, Jefferson 👋</h2>
+      </div>
+      <div class="dashboard-grid" id="dashboard-stats"></div>
+
+      <!-- GRAFICAS -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">📊 Promedios por materia</div>
+          <div class="chart-container">
+            <canvas id="chart-materias"></canvas>
+          </div>
+          <p class="chart-empty" id="chart-materias-empty">Agrega materias para ver la gráfica</p>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">✅ Estado de tareas</div>
+          <div class="chart-container">
+            <canvas id="chart-tareas"></canvas>
+          </div>
+          <p class="chart-empty" id="chart-tareas-empty">Agrega tareas para ver la gráfica</p>
+        </div>
+      </div>
+
+      <div class="upcoming-section" id="dashboard-upcoming"></div>
+    </div>
+
+    <!-- BUSCAR -->
+    <div class="seccion" id="sec-buscar">
+      <div class="seccion-header"><h2>🔍 Buscar</h2></div>
+      <input type="text" id="search-bar" placeholder="Buscar notas, tareas, eventos..." oninput="buscar(this.value)">
+      <div id="search-results"></div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="seccion" id="sec-notas">
+      <div class="seccion-header">
+        <h2>📝 Notas</h2>
+        <div class="header-actions">
+          <button class="btn-add" onclick="abrirModal('modal-nota')" title="Nueva nota">+</button>
+        </div>
+      </div>
+      <div id="lista-notas"></div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="seccion" id="sec-eventos">
+      <div class="seccion-header">
+        <h2>📅 Eventos</h2>
+        <div class="header-actions">
+          <button class="btn-add" onclick="abrirModal('modal-evento')" title="Nuevo evento">+</button>
+        </div>
+      </div>
+      <div id="lista-eventos"></div>
+    </div>
+
+    <!-- PROYECTOS -->
+    <div class="seccion" id="sec-proyectos">
+      <div class="seccion-header">
+        <h2>🎯 Proyectos</h2>
+        <div class="header-actions">
+          <button class="btn-add" onclick="abrirModal('modal-proyecto')" title="Nuevo proyecto">+</button>
+        </div>
+      </div>
+      <div id="lista-proyectos"></div>
+    </div>
+
+    <!-- ACADEMICO -->
+    <div class="seccion" id="sec-academico">
+      <div class="seccion-header"><h2>🎓 Notas académicas</h2></div>
+      <div class="anio-card">
+        <div class="anio-header">
+          <div>
+            <div class="anio-grado">Segundo de bachillerato</div>
+            <div class="anio-year">2026</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="badge-cursando">Cursando</span>
+            <button class="btn-add" onclick="abrirModal('modal-materia')" title="Nueva materia" style="width:30px;height:30px;font-size:1rem">+</button>
+          </div>
+        </div>
+        <div class="materias-container" id="lista-materias"></div>
+      </div>
+    </div>
+
+    <!-- TAREAS -->
+    <div class="seccion" id="sec-tareas">
+      <div class="seccion-header">
+        <h2>⏰ Tareas</h2>
+        <div class="header-actions">
+          <button class="btn-pdf" onclick="exportarPDF()">📄 PDF</button>
+          <button class="btn-add" onclick="abrirModal('modal-tarea')" title="Nueva tarea">+</button>
+        </div>
+      </div>
+      <div id="lista-tareas"></div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="seccion" id="sec-videos">
+      <div class="seccion-header">
+        <h2>🎬 Videos</h2>
+        <div class="header-actions">
+          <button class="btn-icon" onclick="abrirModal('modal-carpeta')" title="Nueva carpeta">📁</button>
+          <button class="btn-add" onclick="abrirModal('modal-video')" title="Nuevo video">+</button>
+        </div>
+      </div>
+      <div id="lista-videos"></div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="seccion" id="sec-perfil">
+      <div class="seccion-header"><h2>👤 Perfil</h2></div>
+      <div class="perfil-card">
+        <div class="perfil-avatar-container">
+          <img class="perfil-avatar" id="perfil-img" src="" alt="foto">
+          <div class="perfil-avatar-edit" onclick="document.getElementById('foto-input').click()">✏️</div>
+          <input type="file" id="foto-input" accept="image/*" onchange="cambiarFoto(this)">
+        </div>
+        <div class="perfil-nombre" id="perfil-nombre-display">Jefferson Miguel Mancia</div>
+        <div class="perfil-grado">Segundo de bachillerato · 2026</div>
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+          <button class="btn-primary" onclick="abrirModal('modal-perfil')">✏️ Editar perfil</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB MOBILE -->
+  <button id="fab" onclick="fabAction()">+</button>
+
+  <!-- MODALES -->
+  <div class="modal-overlay" id="modal-nota">
+    <div class="modal">
+      <h3>📝 Nueva nota</h3>
+      <input type="text" id="nota-titulo" placeholder="Título">
+      <div class="editor-toolbar">
+        <button class="tool-btn" onclick="formatear('bold')"><b>B</b></button>
+        <button class="tool-btn" onclick="formatear('italic')"><i>I</i></button>
+        <button class="tool-btn" onclick="formatear('underline')"><u>U</u></button>
+        <select class="font-select" onchange="cambiarFuente(this.value)">
+          <option value="DM Sans">DM Sans</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Courier</option>
+          <option value="Arial">Arial</option>
+        </select>
+        <select class="font-select" onchange="cambiarTamano(this.value)">
+          <option value="3">Normal</option>
+          <option value="1">Pequeño</option>
+          <option value="5">Grande</option>
+        </select>
+      </div>
+      <div id="editor-nota" contenteditable="true"></div>
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-nota')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarNota()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-evento">
+    <div class="modal">
+      <h3>📅 Nuevo evento</h3>
+      <input type="text" id="evento-nombre" placeholder="Nombre del evento">
+      <input type="text" id="evento-emoji" placeholder="Emoji (ej: ⚽ 🎬 🏆)">
+      <input type="date" id="evento-fecha">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-evento')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarEvento()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-proyecto">
+    <div class="modal">
+      <h3>🎯 Nuevo proyecto</h3>
+      <input type="text" id="proyecto-nombre" placeholder="Nombre">
+      <textarea id="proyecto-desc" placeholder="Descripción..."></textarea>
+      <input type="number" id="proyecto-recordatorio" placeholder="Recordatorio (minutos antes)" min="1">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-proyecto')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarProyecto()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-materia">
+    <div class="modal">
+      <h3>🎓 Nueva materia</h3>
+      <input type="text" id="materia-nombre" placeholder="Nombre de la materia">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-materia')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarMateria()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-tarea">
+    <div class="modal">
+      <h3>⏰ Nueva tarea</h3>
+      <input type="text" id="tarea-nombre" placeholder="Nombre de la tarea">
+      <input type="text" id="tarea-materia" placeholder="Materia">
+      <input type="date" id="tarea-fecha">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-tarea')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarTarea()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-carpeta">
+    <div class="modal">
+      <h3>📁 Nueva carpeta</h3>
+      <input type="text" id="carpeta-nombre" placeholder="Nombre (ej: Física)">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-carpeta')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarCarpeta()">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-video">
+    <div class="modal">
+      <h3>🎬 Nuevo video</h3>
+      <input type="text" id="video-titulo" placeholder="Título del video">
+      <input type="text" id="video-url" placeholder="URL del video">
+      <select id="video-carpeta"><option value="">Sin carpeta</option></select>
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-video')">Cancelar</button>
+        <button class="btn-primary" onclick="agregarVideo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-perfil">
+    <div class="modal">
+      <h3>✏️ Editar perfil</h3>
+      <input type="text" id="perfil-nombre-input" placeholder="Tu nombre completo">
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="cerrarModal('modal-perfil')">Cancelar</button>
+        <button class="btn-primary" onclick="guardarPerfil()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ TEMA ============
+    function toggleTheme() {
+      var t = document.documentElement.getAttribute('data-theme');
+      var newTheme = t === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('tema', newTheme);
+      document.querySelector('.sidebar-icon-btn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
+    }
+    var savedTheme = localStorage.getItem('tema') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.querySelector('.sidebar-icon-btn');
+      if (btn) btn.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+    });
+
+    // ============ PERFIL ============
+    var perfilData = JSON.parse(localStorage.getItem('perfil') || '{"nombre":"Jefferson Miguel Mancia","foto":""}');
+
+    function cargarPerfil() {
+      var nombre = perfilData.nombre || 'Jefferson Miguel Mancia';
+      var foto = perfilData.foto || '';
+      document.getElementById('profile-name').textContent = nombre.split(' ')[0] + ' ' + (nombre.split(' ')[1] || '');
+      document.getElementById('perfil-nombre-display').textContent = nombre;
+      document.getElementById('perfil-nombre-input').value = nombre;
+      var imgs = [document.getElementById('sidebar-profile-img'), document.getElementById('perfil-img'), document.getElementById('topbar-profile')];
+      imgs.forEach(function(img) {
+        if (img) img.src = foto || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nombre) + '&background=1a1a2e&color=fff&size=80';
+      });
+    }
+
+    function guardarPerfil() {
+      var nombre = document.getElementById('perfil-nombre-input').value.trim();
+      if (!nombre) return alert('Escribe tu nombre');
+      perfilData.nombre = nombre;
+      localStorage.setItem('perfil', JSON.stringify(perfilData));
+      cargarPerfil();
+      cerrarModal('modal-perfil');
+    }
+
+    function cambiarFoto(input) {
+      var file = input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        perfilData.foto = e.target.result;
+        localStorage.setItem('perfil', JSON.stringify(perfilData));
+        cargarPerfil();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ============ RELOJ ============
+    function actualizarReloj() {
+      var a = new Date();
+      document.getElementById('reloj').textContent = a.getHours().toString().padStart(2,'0') + ':' + a.getMinutes().toString().padStart(2,'0');
+      var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      document.getElementById('fecha').textContent = dias[a.getDay()] + ', ' + a.getDate() + ' de ' + meses[a.getMonth()];
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+
+    // ============ SIDEBAR MOBILE ============
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('visible');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('visible');
+    }
+
+    // ============ MODALES ============
+    function abrirModal(id) { document.getElementById(id).classList.add('abierto'); }
+    function cerrarModal(id) { document.getElementById(id).classList.remove('abierto'); }
+    document.querySelectorAll('.modal-overlay').forEach(function(m) {
+      m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('abierto'); });
+    });
+
+    // ============ NAVEGACIÓN ============
+    var seccionActual = 'dashboard';
+    function mostrar(s, btn) {
+      document.querySelectorAll('.seccion').forEach(function(x) { x.classList.remove('activa'); });
+      document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('activo'); });
+      document.getElementById('sec-' + s).classList.add('activa');
+      if (btn) btn.classList.add('activo');
+      seccionActual = s;
+      var titles = {dashboard:'Mi Vida',buscar:'Buscar',notas:'Notas',eventos:'Eventos',proyectos:'Proyectos',academico:'Notas académicas',tareas:'Tareas',videos:'Videos',perfil:'Perfil'};
+      document.getElementById('topbar-title').textContent = titles[s] || 'Mi Vida';
+      closeSidebar();
+      if (s === 'dashboard') renderDashboard();
+    }
+
+    // ============ FAB ============
+    function fabAction() {
+      var modals = {notas:'modal-nota',eventos:'modal-evento',proyectos:'modal-proyecto',academico:'modal-materia',tareas:'modal-tarea',videos:'modal-video'};
+      if (modals[seccionActual]) abrirModal(modals[seccionActual]);
+    }
+
+    // ============ COLORES ============
+    var coloresEventos = ['#e53e3e','#dd6b20','#d69e2e','#38a169','#3182ce','#805ad5','#d53f8c','#2b6cb0'];
+    var coloresTareas = {'matematica':'#3182ce','fisica':'#805ad5','quimica':'#38a169','historia':'#dd6b20','literatura':'#d53f8c','ingles':'#e53e3e','programacion':'#2b6cb0','informatica':'#2b6cb0','biologia':'#276749','arte':'#d69e2e'};
+    function colorTarea(nombre) {
+      var n = nombre.toLowerCase();
+      for (var key in coloresTareas) { if (n.indexOf(key) !== -1) return coloresTareas[key]; }
+      var hash = 0;
+      for (var i = 0; i < nombre.length; i++) hash += nombre.charCodeAt(i);
+      return coloresEventos[hash % coloresEventos.length];
+    }
+
+
+    // ============ CHARTS ============
+    var chartMaterias = null;
+    var chartTareas = null;
+
+    function renderCharts() {
+      renderChartMaterias();
+      renderChartTareas();
+    }
+
+    function renderChartMaterias() {
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      var ctx = document.getElementById('chart-materias');
+      var emptyEl = document.getElementById('chart-materias-empty');
+
+      if (!materias.length) {
+        ctx.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      ctx.style.display = 'block';
+      emptyEl.style.display = 'none';
+
+      var labels = [];
+      var data = [];
+      var colors = [];
+      var colorList = ['#3182ce','#805ad5','#38a169','#dd6b20','#d53f8c','#e53e3e','#2b6cb0','#d69e2e'];
+
+      materias.forEach(function(m, i) {
+        var p1o = 0, p1m = 0, p2o = 0, p2m = 0;
+        m.parcial1.actividades.forEach(function(a) { p1o += a.obt; p1m += a.max; });
+        if (m.parcial1.examen) { p1o += m.parcial1.examen.obt; p1m += m.parcial1.examen.max; }
+        m.parcial2.actividades.forEach(function(a) { p2o += a.obt; p2m += a.max; });
+        if (m.parcial2.examen) { p2o += m.parcial2.examen.obt; p2m += m.parcial2.examen.max; }
+        var to = p1o + p2o, tm = p1m + p2m;
+        var pct = tm > 0 ? Math.round((to / tm) * 100) : 0;
+        labels.push(m.nombre.length > 12 ? m.nombre.substring(0, 12) + '...' : m.nombre);
+        data.push(pct);
+        colors.push(colorList[i % colorList.length]);
+      });
+
+      if (chartMaterias) chartMaterias.destroy();
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var textColor = isDark ? '#a0aec0' : '#718096';
+      var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+      chartMaterias = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderRadius: 8,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(c) { return c.raw + '%'; }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { color: textColor, callback: function(v) { return v + '%'; } },
+              grid: { color: gridColor }
+            },
+            x: {
+              ticks: { color: textColor },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    function renderChartTareas() {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      var ctx = document.getElementById('chart-tareas');
+      var emptyEl = document.getElementById('chart-tareas-empty');
+
+      if (!tareas.length) {
+        ctx.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      ctx.style.display = 'block';
+      emptyEl.style.display = 'none';
+
+      var completadas = tareas.filter(function(t) { return t.completada; }).length;
+      var pendientes = tareas.filter(function(t) { return !t.completada; }).length;
+      var vencidas = tareas.filter(function(t) { return !t.completada && t.fecha && diasRestantes(t.fecha) < 0; }).length;
+
+      if (chartTareas) chartTareas.destroy();
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var textColor = isDark ? '#a0aec0' : '#718096';
+
+      chartTareas = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completadas', 'Pendientes', 'Vencidas'],
+          datasets: [{
+            data: [completadas, pendientes - vencidas, vencidas],
+            backgroundColor: ['#38a169', '#3182ce', '#e53e3e'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: textColor,
+                padding: 16,
+                font: { size: 12 }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ============ DASHBOARD ============
+    function diasRestantes(fecha) {
+      var hoy = new Date(); hoy.setHours(0,0,0,0);
+      var ev = new Date(fecha + 'T00:00:00');
+      return Math.ceil((ev - hoy) / (1000*60*60*24));
+    }
+
+    function renderDashboard() {
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      var eventos = JSON.parse(localStorage.getItem('eventos') || '[]');
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      var proyectos = JSON.parse(localStorage.getItem('proyectos') || '[]');
+      var tareasPendientes = tareas.filter(function(t) { return !t.completada; });
+      var proyectosPendientes = proyectos.filter(function(p) { return !p.completado; });
+
+      document.getElementById('dashboard-stats').innerHTML =
+        '<div class="stat-card"><div class="stat-icon">📝</div><div class="stat-num">' + notas.length + '</div><div class="stat-label">Notas</div></div>' +
+        '<div class="stat-card"><div class="stat-icon">⏰</div><div class="stat-num">' + tareasPendientes.length + '</div><div class="stat-label">Tareas pendientes</div></div>' +
+        '<div class="stat-card"><div class="stat-icon">📅</div><div class="stat-num">' + eventos.length + '</div><div class="stat-label">Eventos</div></div>' +
+        '<div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-num">' + proyectosPendientes.length + '</div><div class="stat-label">Proyectos activos</div></div>';
+
+      var proximos = eventos.filter(function(e) { return diasRestantes(e.fecha) >= 0; })
+        .sort(function(a,b) { return diasRestantes(a.fecha) - diasRestantes(b.fecha); }).slice(0,5);
+      var tareasPronto = tareasPendientes.filter(function(t) { return t.fecha; })
+        .sort(function(a,b) { return diasRestantes(a.fecha) - diasRestantes(b.fecha); }).slice(0,3);
+
+      var upcomingHTML = '<div class="upcoming-title">Próximos eventos</div>';
+      if (proximos.length) {
+        proximos.forEach(function(e) {
+          var dias = diasRestantes(e.fecha);
+          upcomingHTML += '<div class="upcoming-item"><div class="upcoming-dot" style="background:' + (e.color||'#3182ce') + '"></div><div class="upcoming-name">' + e.emoji + ' ' + e.nombre + '</div><div class="upcoming-days">' + (dias === 0 ? '¡Hoy!' : dias + 'd') + '</div></div>';
+        });
+      } else {
+        upcomingHTML += '<p style="color:var(--text3);font-size:0.85rem;padding:10px 0">No hay eventos próximos</p>';
+      }
+      if (tareasPronto.length) {
+        upcomingHTML += '<div class="upcoming-title" style="margin-top:16px">Tareas próximas</div>';
+        tareasPronto.forEach(function(t) {
+          var dias = diasRestantes(t.fecha);
+          upcomingHTML += '<div class="upcoming-item"><div class="upcoming-dot" style="background:' + (t.color||'#3182ce') + '"></div><div class="upcoming-name">' + t.nombre + '</div><div class="upcoming-days" style="' + (dias <= 2 ? 'color:var(--red)' : '') + '">' + (dias === 0 ? '¡Hoy!' : dias + 'd') + '</div></div>';
+        });
+      }
+      document.getElementById('dashboard-upcoming').innerHTML = upcomingHTML;
+      renderCharts();
+    }
+
+    // ============ BUSCADOR ============
+    function buscar(q) {
+      if (!q.trim()) { document.getElementById('search-results').innerHTML = ''; return; }
+      q = q.toLowerCase();
+      var resultados = [];
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      notas.forEach(function(n) { if (n.titulo.toLowerCase().indexOf(q) !== -1) resultados.push({tipo:'Nota', texto:n.titulo, seccion:'notas'}); });
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      tareas.forEach(function(t) { if (t.nombre.toLowerCase().indexOf(q) !== -1) resultados.push({tipo:'Tarea', texto:t.nombre, seccion:'tareas'}); });
+      var eventos = JSON.parse(localStorage.getItem('eventos') || '[]');
+      eventos.forEach(function(e) { if (e.nombre.toLowerCase().indexOf(q) !== -1) resultados.push({tipo:'Evento', texto:e.nombre, seccion:'eventos'}); });
+      var videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      videos.forEach(function(v) { if (v.titulo.toLowerCase().indexOf(q) !== -1) resultados.push({tipo:'Video', texto:v.titulo, seccion:'videos'}); });
+
+      if (resultados.length) {
+        var html = '';
+        resultados.forEach(function(r) {
+          html += '<div class="search-result" onclick="mostrar(\'' + r.seccion + '\', null)"><div class="card-title">' + r.texto + '</div><span class="search-badge">' + r.tipo + '</span></div>';
+        });
+        document.getElementById('search-results').innerHTML = html;
+      } else {
+        document.getElementById('search-results').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Sin resultados para "' + q + '"</p>';
+      }
+    }
+
+    // ============ NOTAS ============
+    function formatear(cmd) { document.getElementById('editor-nota').focus(); document.execCommand(cmd); }
+    function cambiarFuente(f) { document.getElementById('editor-nota').focus(); document.execCommand('fontName', false, f); }
+    function cambiarTamano(s) { document.getElementById('editor-nota').focus(); document.execCommand('fontSize', false, s); }
+
+    function agregarNota() {
+      var titulo = document.getElementById('nota-titulo').value.trim();
+      var texto = document.getElementById('editor-nota').innerHTML.trim();
+      if (!titulo || !texto) { alert('Completa todos los campos'); return; }
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      notas.unshift({id: Date.now(), titulo: titulo, texto: texto, fijada: false});
+      localStorage.setItem('notas', JSON.stringify(notas));
+      document.getElementById('nota-titulo').value = '';
+      document.getElementById('editor-nota').innerHTML = '';
+      cerrarModal('modal-nota');
+      renderNotas();
+    }
+
+    function eliminarNota(id) {
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      notas = notas.filter(function(n) { return n.id !== id; });
+      localStorage.setItem('notas', JSON.stringify(notas));
+      renderNotas();
+    }
+
+    function editarNota(id) {
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      var nota = notas.find(function(n) { return n.id === id; });
+      if (!nota) return;
+      document.getElementById('nota-titulo').value = nota.titulo;
+      document.getElementById('editor-nota').innerHTML = nota.texto;
+      eliminarNota(id);
+      abrirModal('modal-nota');
+    }
+
+    function fijarNota(id) {
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      notas = notas.map(function(n) { return n.id === id ? Object.assign({}, n, {fijada: !n.fijada}) : n; });
+      notas.sort(function(a,b) { return (b.fijada ? 1 : 0) - (a.fijada ? 1 : 0); });
+      localStorage.setItem('notas', JSON.stringify(notas));
+      renderNotas();
+    }
+
+    function renderNotas() {
+      var notas = JSON.parse(localStorage.getItem('notas') || '[]');
+      var html = '';
+      if (notas.length) {
+        notas.forEach(function(n) {
+          html += '<div class="nota-card' + (n.fijada ? ' nota-pinned' : '') + '">';
+          html += '<div class="nota-header"><div class="nota-titulo">' + (n.fijada ? '📌 ' : '') + n.titulo + '</div>';
+          html += '<div class="nota-actions">';
+          html += '<button class="btn-danger-sm" onclick="fijarNota(' + n.id + ')" title="Fijar">' + (n.fijada ? '📌' : '📍') + '</button>';
+          html += '<button class="btn-danger-sm" onclick="editarNota(' + n.id + ')" title="Editar">✏️</button>';
+          html += '<button class="btn-danger-sm" onclick="eliminarNota(' + n.id + ')" title="Eliminar">🗑️</button>';
+          html += '</div></div><div class="nota-contenido">' + n.texto + '</div></div>';
+        });
+      } else {
+        html = '<p style="color:var(--text3);text-align:center;padding:40px">No hay notas aún</p>';
+      }
+      document.getElementById('lista-notas').innerHTML = html;
+    }
+
+    // ============ EVENTOS ============
+    function agregarEvento() {
+      var nombre = document.getElementById('evento-nombre').value.trim();
+      var emoji = document.getElementById('evento-emoji').value.trim() || '📅';
+      var fecha = document.getElementById('evento-fecha').value;
+      if (!nombre || !fecha) { alert('Completa todos los campos'); return; }
+      var eventos = JSON.parse(localStorage.getItem('eventos') || '[]');
+      var color = coloresEventos[eventos.length % coloresEventos.length];
+      eventos.push({id: Date.now(), nombre: nombre, emoji: emoji, fecha: fecha, color: color});
+      localStorage.setItem('eventos', JSON.stringify(eventos));
+      document.getElementById('evento-nombre').value = '';
+      document.getElementById('evento-emoji').value = '';
+      document.getElementById('evento-fecha').value = '';
+      cerrarModal('modal-evento');
+      renderEventos();
+    }
+
+    function eliminarEvento(id) {
+      var eventos = JSON.parse(localStorage.getItem('eventos') || '[]');
+      eventos = eventos.filter(function(e) { return e.id !== id; });
+      localStorage.setItem('eventos', JSON.stringify(eventos));
+      renderEventos();
+    }
+
+    function renderEventos() {
+      var eventos = JSON.parse(localStorage.getItem('eventos') || '[]');
+      var html = '';
+      if (eventos.length) {
+        eventos.forEach(function(e) {
+          var dias = diasRestantes(e.fecha);
+          var label = dias > 0 ? 'días' : dias === 0 ? '¡Hoy!' : 'pasado';
+          html += '<div class="evento-card" style="background:' + (e.color||'#3182ce') + '">';
+          html += '<div style="display:flex;align-items:center;gap:14px"><span style="font-size:1.8rem">' + (e.emoji||'📅') + '</span>';
+          html += '<div><div style="font-weight:600">' + e.nombre + '</div><div style="font-size:0.78rem;opacity:0.8">' + e.fecha + '</div></div></div>';
+          html += '<div style="display:flex;align-items:center;gap:12px"><div style="text-align:right"><div class="evento-dias">' + Math.abs(dias) + '</div><div class="evento-label">' + label + '</div></div>';
+          html += '<button class="btn-danger-sm" style="color:rgba(255,255,255,0.7)" onclick="eliminarEvento(' + e.id + ')">✕</button></div></div>';
+        });
+      } else {
+        html = '<p style="color:var(--text3);text-align:center;padding:40px">No hay eventos aún</p>';
+      }
+      document.getElementById('lista-eventos').innerHTML = html;
+    }
+
+    // ============ PROYECTOS ============
+    function agregarProyecto() {
+      var nombre = document.getElementById('proyecto-nombre').value.trim();
+      var desc = document.getElementById('proyecto-desc').value.trim();
+      var mins = parseInt(document.getElementById('proyecto-recordatorio').value) || 0;
+      if (!nombre) { alert('Escribe el nombre'); return; }
+      var proyectos = JSON.parse(localStorage.getItem('proyectos') || '[]');
+      proyectos.unshift({id: Date.now(), nombre: nombre, desc: desc, mins: mins, completado: false});
+      localStorage.setItem('proyectos', JSON.stringify(proyectos));
+      document.getElementById('proyecto-nombre').value = '';
+      document.getElementById('proyecto-desc').value = '';
+      document.getElementById('proyecto-recordatorio').value = '';
+      cerrarModal('modal-proyecto');
+      if (mins > 0) {
+        setTimeout(function() { alert('Recordatorio: "' + nombre + '"'); }, mins * 60 * 1000);
+      }
+      renderProyectos();
+    }
+
+    function eliminarProyecto(id) {
+      var proyectos = JSON.parse(localStorage.getItem('proyectos') || '[]');
+      proyectos = proyectos.filter(function(p) { return p.id !== id; });
+      localStorage.setItem('proyectos', JSON.stringify(proyectos));
+      renderProyectos();
+    }
+
+    function toggleProyecto(id) {
+      var proyectos = JSON.parse(localStorage.getItem('proyectos') || '[]');
+      proyectos = proyectos.map(function(p) { return p.id === id ? Object.assign({}, p, {completado: !p.completado}) : p; });
+      localStorage.setItem('proyectos', JSON.stringify(proyectos));
+      renderProyectos();
+    }
+
+    function renderProyectos() {
+      var proyectos = JSON.parse(localStorage.getItem('proyectos') || '[]');
+      var html = '';
+      if (proyectos.length) {
+        proyectos.forEach(function(p) {
+          html += '<div class="proyecto-card" style="' + (p.completado ? 'opacity:0.5' : '') + '">';
+          html += '<div class="proyecto-header"><div class="proyecto-nombre" style="' + (p.completado ? 'text-decoration:line-through' : '') + '">' + p.nombre + '</div>';
+          html += '<div style="display:flex;align-items:center;gap:6px">';
+          if (p.mins) html += '<span class="recordatorio-badge">⏰ ' + p.mins + 'm</span>';
+          html += '<button class="btn-mini" onclick="toggleProyecto(' + p.id + ')">' + (p.completado ? '↩' : '✓') + '</button>';
+          html += '<button class="btn-danger-sm" onclick="eliminarProyecto(' + p.id + ')">🗑️</button></div></div>';
+          if (p.desc) html += '<div class="proyecto-desc">' + p.desc + '</div>';
+          html += '</div>';
+        });
+      } else {
+        html = '<p style="color:var(--text3);text-align:center;padding:40px">No hay proyectos aún</p>';
+      }
+      document.getElementById('lista-proyectos').innerHTML = html;
+    }
+
+    // ============ ACADEMICO ============
+    function agregarMateria() {
+      var nombre = document.getElementById('materia-nombre').value.trim();
+      if (!nombre) { alert('Escribe el nombre'); return; }
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      materias.push({id: Date.now(), nombre: nombre, parcial1: {actividades: [], examen: null}, parcial2: {actividades: [], examen: null}});
+      localStorage.setItem('materias', JSON.stringify(materias));
+      document.getElementById('materia-nombre').value = '';
+      cerrarModal('modal-materia');
+      renderMaterias();
+    }
+
+    function eliminarMateria(id) {
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      materias = materias.filter(function(m) { return m.id !== id; });
+      localStorage.setItem('materias', JSON.stringify(materias));
+      renderMaterias();
+    }
+
+    function agregarActividad(materiaId, parcial) {
+      var nombre = document.getElementById('an-' + materiaId + '-' + parcial).value.trim();
+      var obt = parseFloat(document.getElementById('ao-' + materiaId + '-' + parcial).value);
+      var max = parseFloat(document.getElementById('am-' + materiaId + '-' + parcial).value);
+      if (!nombre || isNaN(obt) || isNaN(max)) { alert('Completa todos los campos'); return; }
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      materias = materias.map(function(m) {
+        if (m.id === materiaId) m[parcial].actividades.push({id: Date.now(), nombre: nombre, obt: obt, max: max});
+        return m;
+      });
+      localStorage.setItem('materias', JSON.stringify(materias));
+      renderMaterias();
+    }
+
+    function eliminarActividad(mId, parcial, aId) {
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      materias = materias.map(function(m) {
+        if (m.id === mId) m[parcial].actividades = m[parcial].actividades.filter(function(a) { return a.id !== aId; });
+        return m;
+      });
+      localStorage.setItem('materias', JSON.stringify(materias));
+      renderMaterias();
+    }
+
+    function agregarExamen(mId, parcial) {
+      var obt = parseFloat(document.getElementById('eo-' + mId + '-' + parcial).value);
+      var max = parseFloat(document.getElementById('em-' + mId + '-' + parcial).value);
+      if (isNaN(obt) || isNaN(max)) { alert('Completa los campos'); return; }
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      materias = materias.map(function(m) {
+        if (m.id === mId) m[parcial].examen = {obt: obt, max: max};
+        return m;
+      });
+      localStorage.setItem('materias', JSON.stringify(materias));
+      renderMaterias();
+    }
+
+    function colorNota(obt, max) {
+      if (!max) return 'var(--text3)';
+      var p = obt/max;
+      return p >= 0.7 ? 'var(--green)' : p >= 0.5 ? 'var(--yellow)' : 'var(--red)';
+    }
+
+    function renderParcialBox(m, pk, num) {
+      var p = m[pk];
+      var actsObt = 0, actsMax = 0;
+      p.actividades.forEach(function(a) { actsObt += a.obt; actsMax += a.max; });
+      var examObt = p.examen ? p.examen.obt : 0;
+      var examMax = p.examen ? p.examen.max : 0;
+      var totalObt = actsObt + examObt;
+      var totalMax = actsMax + examMax;
+      var color = colorNota(totalObt, totalMax);
+      var html = '<div class="parcial-box"><div class="parcial-titulo">Parcial ' + num + '</div>';
+      p.actividades.forEach(function(a) {
+        html += '<div class="act-row"><span class="act-nombre">' + a.nombre + '</span><span class="act-nota">' + a.obt + '/' + a.max + '</span><button class="btn-danger-sm" onclick="eliminarActividad(' + m.id + ',\'' + pk + '\',' + a.id + ')">✕</button></div>';
+      });
+      html += '<div class="parcial-subtotal"><span>Acumulado</span><span>' + actsObt + '/' + actsMax + '</span></div>';
+      if (p.examen) {
+        html += '<div class="parcial-subtotal"><span>Examen</span><span>' + p.examen.obt + '/' + p.examen.max + '</span></div>';
+      } else {
+        html += '<div class="add-act-row" style="margin-top:8px"><input id="eo-' + m.id + '-' + pk + '" type="number" placeholder="Exam"><input id="em-' + m.id + '-' + pk + '" type="number" placeholder="Máx"><button class="btn-mini" onclick="agregarExamen(' + m.id + ',\'' + pk + '\')">+ Exam</button></div>';
+      }
+      html += '<div class="add-act-row" style="margin-top:8px"><input id="an-' + m.id + '-' + pk + '" placeholder="Actividad"><input id="ao-' + m.id + '-' + pk + '" type="number" placeholder="Nota"><input id="am-' + m.id + '-' + pk + '" type="number" placeholder="Máx"><button class="btn-mini" onclick="agregarActividad(' + m.id + ',\'' + pk + '\')">+</button></div>';
+      html += '<div style="text-align:right;margin-top:8px;font-size:0.82rem">Total: <span style="font-weight:700;color:' + color + '">' + totalObt + '/' + totalMax + '</span></div></div>';
+      return html;
+    }
+
+    function renderMaterias() {
+      var materias = JSON.parse(localStorage.getItem('materias') || '[]');
+      var html = '';
+      if (materias.length) {
+        materias.forEach(function(m) {
+          var p1o = 0, p1m = 0, p2o = 0, p2m = 0;
+          m.parcial1.actividades.forEach(function(a) { p1o += a.obt; p1m += a.max; });
+          if (m.parcial1.examen) { p1o += m.parcial1.examen.obt; p1m += m.parcial1.examen.max; }
+          m.parcial2.actividades.forEach(function(a) { p2o += a.obt; p2m += a.max; });
+          if (m.parcial2.examen) { p2o += m.parcial2.examen.obt; p2m += m.parcial2.examen.max; }
+          var to = p1o + p2o, tm = p1m + p2m;
+          var color = colorNota(to, tm);
+          html += '<div class="materia-card"><div class="materia-header"><div class="materia-nombre">' + m.nombre + '</div>';
+          html += '<div style="display:flex;align-items:center;gap:8px"><span style="font-weight:700;color:' + color + '">' + (tm ? to + '/' + tm : '--') + '</span>';
+          html += '<button class="btn-danger-sm" onclick="eliminarMateria(' + m.id + ')">🗑️</button></div></div>';
+          html += '<div class="parciales-grid">' + renderParcialBox(m,'parcial1',1) + renderParcialBox(m,'parcial2',2) + '</div></div>';
+        });
+      } else {
+        html = '<p style="color:var(--text3);text-align:center;padding:20px">No hay materias aún</p>';
+      }
+      document.getElementById('lista-materias').innerHTML = html;
+    }
+
+    // ============ TAREAS ============
+    function agregarTarea() {
+      var nombre = document.getElementById('tarea-nombre').value.trim();
+      var materia = document.getElementById('tarea-materia').value.trim();
+      var fecha = document.getElementById('tarea-fecha').value;
+      if (!nombre) { alert('Escribe el nombre'); return; }
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      var color = colorTarea(materia || nombre);
+      tareas.unshift({id: Date.now(), nombre: nombre, materia: materia, fecha: fecha, completada: false, color: color});
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+      document.getElementById('tarea-nombre').value = '';
+      document.getElementById('tarea-materia').value = '';
+      document.getElementById('tarea-fecha').value = '';
+      cerrarModal('modal-tarea');
+      renderTareas();
+    }
+
+    function eliminarTarea(id) {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      tareas = tareas.filter(function(t) { return t.id !== id; });
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+      renderTareas();
+    }
+
+    function toggleTarea(id) {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      tareas = tareas.map(function(t) { return t.id === id ? Object.assign({}, t, {completada: !t.completada}) : t; });
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+      renderTareas();
+    }
+
+    function exportarPDF() {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      if (!tareas.length) { alert('No hay tareas'); return; }
+      var ventana = window.open('', '_blank');
+      var contenido = '<!DOC' + 'TYPE html><html><head><title>Tareas</title><style>body{font-family:Arial,sans-serif;padding:40px}h1{color:#1a1a2e;margin-bottom:20px}.t{padding:12px;margin-bottom:8px;border-radius:8px;background:#f8fafc;border-left:4px solid #3182ce}.n{font-weight:bold}.m{color:#718096;font-size:0.85rem;margin-top:4px}.c{text-decoration:line-through;opacity:0.5}</style></head><body><h1>Lista de Tareas</h1>';
+      tareas.forEach(function(t) {
+        contenido += '<div class="t" style="border-left-color:' + (t.color||'#3182ce') + '"><div class="n ' + (t.completada?'c':'') + '">' + (t.completada?'✅':'⬜') + ' ' + t.nombre + '</div><div class="m">' + (t.materia||'') + (t.fecha?' · '+t.fecha:'') + '</div></div>';
+      });
+      contenido += '</' + 'body></' + 'html>';
+      ventana.document.write(contenido);
+      ventana.document.close();
+      ventana.print();
+    }
+
+    function renderTareas() {
+      var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      var html = '';
+      if (tareas.length) {
+        tareas.forEach(function(t) {
+          var dias = t.fecha ? diasRestantes(t.fecha) : null;
+          var diasText = dias === null ? '' : dias === 0 ? '¡Hoy!' : dias > 0 ? dias + ' días' : 'Vencida';
+          html += '<div class="tarea-card" style="background:' + (t.color||'#3182ce') + ';' + (t.completada?'opacity:0.5':'') + '">';
+          html += '<div><div style="font-weight:600;' + (t.completada?'text-decoration:line-through':'') + '">' + t.nombre + '</div>';
+          html += '<div style="font-size:0.78rem;opacity:0.8">' + (t.materia||'') + (t.fecha?' · '+diasText:'') + '</div></div>';
+          html += '<div style="display:flex;gap:6px"><button class="btn-mini" onclick="toggleTarea(' + t.id + ')">' + (t.completada?'↩':'✓') + '</button>';
+          html += '<button class="btn-danger-sm" style="color:rgba(255,255,255,0.7)" onclick="eliminarTarea(' + t.id + ')">✕</button></div></div>';
+        });
+      } else {
+        html = '<p style="color:var(--text3);text-align:center;padding:40px">No hay tareas aún</p>';
+      }
+      document.getElementById('lista-tareas').innerHTML = html;
+    }
+
+    // ============ VIDEOS ============
+    function agregarCarpeta() {
+      var nombre = document.getElementById('carpeta-nombre').value.trim();
+      if (!nombre) { alert('Escribe el nombre'); return; }
+      var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
+      carpetas.push({id: Date.now(), nombre: nombre, abierta: true});
+      localStorage.setItem('carpetas', JSON.stringify(carpetas));
+      document.getElementById('carpeta-nombre').value = '';
+      cerrarModal('modal-carpeta');
+      actualizarSelectCarpetas();
+      renderVideos();
+    }
+
+    function eliminarCarpeta(id) {
+      var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
+      carpetas = carpetas.filter(function(c) { return c.id !== id; });
+      localStorage.setItem('carpetas', JSON.stringify(carpetas));
+      var videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      videos = videos.map(function(v) { return v.carpetaId === id ? Object.assign({}, v, {carpetaId: null}) : v; });
+      localStorage.setItem('videos', JSON.stringify(videos));
+      actualizarSelectCarpetas();
+      renderVideos();
+    }
+
+    function toggleCarpeta(id) {
+      var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
+      carpetas = carpetas.map(function(c) { return c.id === id ? Object.assign({}, c, {abierta: !c.abierta}) : c; });
+      localStorage.setItem('carpetas', JSON.stringify(carpetas));
+      renderVideos();
+    }
+
+    function agregarVideo() {
+      var titulo = document.getElementById('video-titulo').value.trim();
+      var url = document.getElementById('video-url').value.trim();
+      var carpetaId = parseInt(document.getElementById('video-carpeta').value) || null;
+      if (!titulo || !url) { alert('Completa título y URL'); return; }
+      var videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      videos.unshift({id: Date.now(), titulo: titulo, url: url, carpetaId: carpetaId});
+      localStorage.setItem('videos', JSON.stringify(videos));
+      document.getElementById('video-titulo').value = '';
+      document.getElementById('video-url').value = '';
+      document.getElementById('video-carpeta').value = '';
+      cerrarModal('modal-video');
+      renderVideos();
+    }
+
+    function eliminarVideo(id) {
+      var videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      videos = videos.filter(function(v) { return v.id !== id; });
+      localStorage.setItem('videos', JSON.stringify(videos));
+      renderVideos();
+    }
+
+    function actualizarSelectCarpetas() {
+      var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
+      var select = document.getElementById('video-carpeta');
+      var html = '<option value="">Sin carpeta</option>';
+      carpetas.forEach(function(c) { html += '<option value="' + c.id + '">' + c.nombre + '</option>'; });
+      select.innerHTML = html;
+    }
+
+    function renderVideos() {
+      var carpetas = JSON.parse(localStorage.getItem('carpetas') || '[]');
+      var videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      var sinCarpeta = videos.filter(function(v) { return !v.carpetaId; });
+      var html = '';
+      carpetas.forEach(function(c) {
+        var cvids = videos.filter(function(v) { return v.carpetaId === c.id; });
+        html += '<div class="carpeta-card"><div class="carpeta-header" onclick="toggleCarpeta(' + c.id + ')"><div><span>📁 </span><span class="carpeta-nombre">' + c.nombre + '</span></div>';
+        html += '<div style="display:flex;align-items:center;gap:8px"><span class="carpeta-count">' + cvids.length + ' videos</span><span>' + (c.abierta?'▲':'▼') + '</span><button class="btn-danger-sm" onclick="event.stopPropagation();eliminarCarpeta(' + c.id + ')">✕</button></div></div>';
+        if (c.abierta) {
+          html += '<div class="carpeta-videos">';
+          if (cvids.length) {
+            cvids.forEach(function(v) {
+              html += '<div class="video-item"><div><div class="video-titulo">' + v.titulo + '</div><a href="' + v.url + '" target="_blank" class="video-link">▶ Ver video</a></div>';
+              html += '<button class="btn-danger-sm" onclick="eliminarVideo(' + v.id + ')">✕</button></div>';
+            });
+          } else {
+            html += '<p style="color:var(--text3);font-size:0.85rem;padding:10px 0">No hay videos</p>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      if (sinCarpeta.length) {
+        html += '<div class="carpeta-card"><div class="carpeta-header"><span class="carpeta-nombre">Sin carpeta</span><span class="carpeta-count">' + sinCarpeta.length + ' videos</span></div>';
+        html += '<div class="carpeta-videos">';
+        sinCarpeta.forEach(function(v) {
+          html += '<div class="video-item"><div><div class="video-titulo">' + v.titulo + '</div><a href="' + v.url + '" target="_blank" class="video-link">▶ Ver video</a></div>';
+          html += '<button class="btn-danger-sm" onclick="eliminarVideo(' + v.id + ')">✕</button></div>';
+        });
+        html += '</div></div>';
+      }
+      document.getElementById('lista-videos').innerHTML = html || '<p style="color:var(--text3);text-align:center;padding:40px">No hay videos aún</p>';
+    }
+
+    // ============ INIT ============
+    cargarPerfil();
+    renderDashboard();
+    renderNotas();
+    renderEventos();
+    renderProyectos();
+    renderMaterias();
+    renderTareas();
+    renderVideos();
+    actualizarSelectCarpetas();
+    setInterval(function() { renderEventos(); renderTareas(); renderDashboard(); }, 60000);
+  </script>
+</body>
+</html>
