@@ -529,6 +529,12 @@
       <input type="text" id="tarea-nombre" placeholder="Nombre de la tarea">
       <input type="text" id="tarea-materia" placeholder="Materia">
       <input type="date" id="tarea-fecha">
+      <select id="tarea-prioridad">
+        <option value="normal">📋 Normal</option>
+        <option value="alta">🔴 Alta prioridad</option>
+        <option value="media">🟡 Media prioridad</option>
+        <option value="baja">🟢 Baja prioridad</option>
+      </select>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="cerrarModal('modal-tarea')">Cancelar</button>
         <button class="btn-primary" onclick="agregarTarea()">Guardar</button>
@@ -1159,14 +1165,16 @@
       var nombre = document.getElementById('tarea-nombre').value.trim();
       var materia = document.getElementById('tarea-materia').value.trim();
       var fecha = document.getElementById('tarea-fecha').value;
+      var prioridad = document.getElementById('tarea-prioridad').value;
       if (!nombre) { alert('Escribe el nombre'); return; }
       var tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
       var color = colorTarea(materia || nombre);
-      tareas.unshift({id: Date.now(), nombre: nombre, materia: materia, fecha: fecha, completada: false, color: color});
+      tareas.unshift({id: Date.now(), nombre: nombre, materia: materia, fecha: fecha, completada: false, color: color, prioridad: prioridad});
       localStorage.setItem('tareas', JSON.stringify(tareas));
       document.getElementById('tarea-nombre').value = '';
       document.getElementById('tarea-materia').value = '';
       document.getElementById('tarea-fecha').value = '';
+      document.getElementById('tarea-prioridad').value = 'normal';
       cerrarModal('modal-tarea');
       renderTareas();
     }
@@ -1206,8 +1214,9 @@
         tareas.forEach(function(t) {
           var dias = t.fecha ? diasRestantes(t.fecha) : null;
           var diasText = dias === null ? '' : dias === 0 ? '¡Hoy!' : dias > 0 ? dias + ' días' : 'Vencida';
+          var prioridadIcon = t.prioridad === 'alta' ? '🔴 ' : t.prioridad === 'media' ? '🟡 ' : t.prioridad === 'baja' ? '🟢 ' : '';
           html += '<div class="tarea-card" style="background:' + (t.color||'#3182ce') + ';' + (t.completada?'opacity:0.5':'') + '">';
-          html += '<div><div style="font-weight:600;' + (t.completada?'text-decoration:line-through':'') + '">' + t.nombre + '</div>';
+          html += '<div><div style="font-weight:600;' + (t.completada?'text-decoration:line-through':'') + '">' + prioridadIcon + t.nombre + '</div>';
           html += '<div style="font-size:0.78rem;opacity:0.8">' + (t.materia||'') + (t.fecha?' · '+diasText:'') + '</div></div>';
           html += '<div style="display:flex;gap:6px"><button class="btn-mini" onclick="toggleTarea(' + t.id + ')">' + (t.completada?'↩':'✓') + '</button>';
           html += '<button class="btn-danger-sm" style="color:rgba(255,255,255,0.7)" onclick="eliminarTarea(' + t.id + ')">✕</button></div></div>';
